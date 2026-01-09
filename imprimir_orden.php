@@ -1,10 +1,18 @@
 <?php
 require 'includes/db.php';
+
 $id = (int) ($_GET['id'] ?? 0);
 if (!$id) die('ID no válido');
-$stmt = $pdo->prepare('SELECT e.*, r.nombre as repartidor_nombre FROM entregas e LEFT JOIN repartidores r ON e.repartidor_id = r.id WHERE e.id = ?');
+
+$stmt = $pdo->prepare('
+    SELECT e.*, r.nombre as repartidor_nombre 
+    FROM entregas e 
+    LEFT JOIN repartidores r ON e.repartidor_id = r.id 
+    WHERE e.id = ?
+');
 $stmt->execute([$id]);
 $entrega = $stmt->fetch();
+
 if (!$entrega) die('Entrega no encontrada');
 ?>
 <!DOCTYPE html>
@@ -67,13 +75,16 @@ if (!$entrega) die('Entrega no encontrada');
             color: #111827;
         }
 
-        .barcode {
-            font-family: 'Libre Barcode 39', cursive;
-            font-size: 32px;
+        .barcode-container {
             text-align: center;
-            padding: 10px 0;
-            margin: 10px 0;
-            letter-spacing: 2px;
+            margin: 20px 0;
+        }
+
+        .barcode {
+            height: 50px;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
         }
 
         .section {
@@ -128,57 +139,86 @@ if (!$entrega) die('Entrega no encontrada');
             color: #6b7280;
         }
     </style>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" http://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 </head>
 
 <body>
     <div class="print-button no-print">
-        <button onclick="window.print()" style="background: #f97316; color: white; border: none; border-radius: 8px; cursor: pointer;"><i class="fas fa-print"></i> Imprimir Orden</button>
-        <a href="ver_ruta.php?id=<?= $entrega['id'] ?>" style="display: inline-block; margin-top: 10px; color: #f97316; text-decoration: none;">← Volver a la entrega</a>
+        <button onclick="window.print()" style="background: #f97316; color: white; border: none; border-radius: 8px; cursor: pointer;">
+            <i class="fas fa-print"></i> Imprimir Orden
+        </button>
+        <a href="ver_ruta.php?id=<?= $entrega['id'] ?>" style="display: inline-block; margin-top: 10px; color: #f97316; text-decoration: none;">
+            ← Volver a la entrega
+        </a>
     </div>
+
     <div class="page">
         <div class="header">
             <h1>ORDEN DE ENTREGA</h1>
             <div style="font-size: 18px; font-weight: bold; margin-top: 5px;">#<?= htmlspecialchars($entrega['id']) ?></div>
         </div>
-        <div class="barcode">*<?= str_pad($entrega['id'], 8, '0', STR_PAD_LEFT) ?>*</div>
+
+        <!-- ✅ SOLO CÓDIGO DE BARRAS -->
+        <div class="barcode-container">
+            <svg class="barcode" jsbarcode-value="<?= str_pad($entrega['id'], 8, '0', STR_PAD_LEFT) ?>"
+                jsbarcode-format="CODE128"
+                jsbarcode-display-value="true"
+                jsbarcode-font-size="14"
+                jsbarcode-height="50"
+                jsbarcode-text-margin="5"></svg>
+        </div>
+
         <div class="section">
             <h2>DETALLES DE LA ENTREGA</h2>
             <div class="info-grid">
-                <div class="info-item"><span class="info-label">Paquete:</span><?= htmlspecialchars($entrega['descripcion']) ?></div>
-                <div class="info-item"><span class="info-label">Repartidor:</span><?= htmlspecialchars($entrega['repartidor_nombre'] ?? '—') ?></div>
-                <div class="info-item"><span class="info-label">Fecha/Hora:</span><?= htmlspecialchars($entrega['fecha_entrega']) ?> <?= htmlspecialchars($entrega['hora_entrega']) ?></div>
-                <div class="info-item"><span class="info-label">Estado:</span><span style="text-transform: capitalize;"><?= htmlspecialchars($entrega['estado']) ?></span></div>
+                <div class="info-item">
+                    <span class="info-label">Paquete:</span>
+                    <?= htmlspecialchars($entrega['descripcion']) ?>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Repartidor:</span>
+                    <?= htmlspecialchars($entrega['repartidor_nombre'] ?? '—') ?>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Fecha/Hora:</span>
+                    <?= htmlspecialchars($entrega['fecha_entrega']) ?> <?= htmlspecialchars($entrega['hora_entrega']) ?>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Estado:</span>
+                    <span style="text-transform: capitalize;"><?= htmlspecialchars($entrega['estado']) ?></span>
+                </div>
             </div>
         </div>
+
         <div class="section">
             <h2>ORIGEN</h2>
             <div><?= htmlspecialchars($entrega['direccion_origen']) ?></div>
         </div>
+
         <div class="section">
             <h2>DESTINO</h2>
             <div><?= htmlspecialchars($entrega['direccion_destino']) ?></div>
         </div>
+
         <div class="section">
             <h2>CONFIRMACIÓN DE ENTREGA</h2>
             <div class="signature-box">
                 <div class="signature-label">FIRMA DEL RECEPTOR</div>
             </div>
-            <div style="margin-top: 10px; font-size: 12px; color: #6b7280;">Al firmar, confirma que ha recibido el paquete en buen estado.</div>
+            <div style="margin-top: 10px; font-size: 12px; color: #6b7280;">
+                Al firmar, confirma que ha recibido el paquete en buen estado.
+            </div>
         </div>
-        <div class="footer">Generado el <?= date('d/m/Y H:i') ?> | DeliveryApp</div>
+
+        <div class="footer">
+            Generado el <?= date('d/m/Y H:i') ?> | DeliveryApp
+        </div>
     </div>
+
     <script>
-        if (window.matchMedia) {
-            const mediaQuery = window.matchMedia('(max-width: 600px)');
-            if (mediaQuery.matches) {
-                document.querySelector('.page').style.width = '100%';
-                document.querySelector('.page').style.minHeight = 'auto';
-                document.querySelector('.page').style.padding = '10mm';
-            }
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            JsBarcode(".barcode").init();
+        });
     </script>
 </body>
 

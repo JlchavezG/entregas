@@ -1,12 +1,21 @@
 <?php
 require 'includes/db.php';
 require 'config.php';
+
 $id = (int) ($_GET['id'] ?? 0);
 if (!$id) die('ID no válido');
-$stmt = $pdo->prepare('SELECT e.*, r.nombre as repartidor_nombre FROM entregas e LEFT JOIN repartidores r ON e.repartidor_id = r.id WHERE e.id = ?');
+
+$stmt = $pdo->prepare('
+    SELECT e.*, r.nombre as repartidor_nombre 
+    FROM entregas e 
+    LEFT JOIN repartidores r ON e.repartidor_id = r.id 
+    WHERE e.id = ?
+');
 $stmt->execute([$id]);
 $entrega = $stmt->fetch();
+
 if (!$entrega) die('Entrega no encontrada');
+
 $destLat = $entrega['lat_destino'];
 $destLng = $entrega['lng_destino'];
 $googleMapsUrl = "https://www.google.com/maps/dir/?api=1&destination={$destLat},{$destLng}";
@@ -24,10 +33,13 @@ $googleMapsUrl = "https://www.google.com/maps/dir/?api=1&destination={$destLat},
 
 <body>
     <?php include 'includes/sidebar.php'; ?>
+
     <main class="main-content">
-        <h1 class="page-title">🗺️ Ruta de Entrega #<?= htmlspecialchars($entrega['id']) ?></h1>
+        <h1 class="page-title"> Ruta de Entrega #<?= htmlspecialchars($entrega['id']) ?></h1>
+
         <div class="card">
             <h2><?= htmlspecialchars($entrega['descripcion']) ?></h2>
+
             <div style="margin: 1.5rem 0;">
                 <ol style="padding: 0; margin: 0; list-style: none;">
                     <li style="display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--border);">
@@ -60,15 +72,27 @@ $googleMapsUrl = "https://www.google.com/maps/dir/?api=1&destination={$destLat},
                     </li>
                 </ol>
             </div>
+
             <div id="map" style="height: 500px; border-radius: 12px; margin: 1.5rem 0; border: 1px solid var(--border);"></div>
-            <a href="<?= htmlspecialchars($googleMapsUrl) ?>" target="_blank" class="google-nav-btn">
-                <i class="fas fa-directions"></i> Ir con Google Maps
-            </a>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
+                <a href="<?= htmlspecialchars($googleMapsUrl) ?>" target="_blank" class="google-nav-btn">
+                    <i class="fas fa-directions"></i> Ir con Google Maps
+                </a>
+                <!-- ✅ BOTÓN DE IMPRESIÓN AÑADIDO -->
+                <a href="imprimir_orden.php?id=<?= $entrega['id'] ?>" target="_blank" class="google-nav-btn" style="background: #10b981;">
+                    <i class="fas fa-print"></i> Imprimir Orden
+                </a>
+            </div>
+
             <div class="final-actions">
-                <a href="index.php" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Volver</a>
+                <a href="index.php" class="btn btn-outline">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
             </div>
         </div>
     </main>
+
     <script>
         const baseUrl = window.location.origin + window.location.pathname.replace(/[^/]+$/, '');
 
@@ -89,6 +113,7 @@ $googleMapsUrl = "https://www.google.com/maps/dir/?api=1&destination={$destLat},
                     themeToggle.dataset.initialized = 'true';
                 }
             }
+
             const sidebarToggle = document.getElementById('sidebarToggle');
             const sidebarIcon = document.getElementById('sidebarIcon');
             if (sidebarToggle && sidebarIcon) {
@@ -108,6 +133,7 @@ $googleMapsUrl = "https://www.google.com/maps/dir/?api=1&destination={$destLat},
                 }
             }
         }
+
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initSidebarAndTheme);
         } else {
@@ -244,9 +270,11 @@ $googleMapsUrl = "https://www.google.com/maps/dir/?api=1&destination={$destLat},
                     }
                 ] : []
             });
+
             const directionsService = new google.maps.DirectionsService();
             const directionsRenderer = new google.maps.DirectionsRenderer();
             directionsRenderer.setMap(map);
+
             directionsService.route({
                 origin: {
                     lat: <?= (float)$entrega['lat_origen'] ?>,
@@ -269,6 +297,7 @@ $googleMapsUrl = "https://www.google.com/maps/dir/?api=1&destination={$destLat},
                 }
             });
         }
+
         const script = document.createElement('script');
         script.src = `https://maps.googleapis.com/maps/api/js?key=<?= GOOGLE_MAPS_API_KEY ?>&callback=initMap`;
         script.async = true;

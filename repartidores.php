@@ -16,7 +16,7 @@ $mensaje = $_GET['mensaje'] ?? '';
 <body>
     <?php include 'includes/sidebar.php'; ?>
     <main class="main-content">
-        <h1 class="page-title">👥 Repartidores</h1>
+        <h1 class="page-title"> Repartidores</h1>
         <?php if ($mensaje): ?>
             <div class="alert"><?= htmlspecialchars($mensaje) ?></div>
         <?php endif; ?>
