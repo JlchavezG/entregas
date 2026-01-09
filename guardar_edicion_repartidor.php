@@ -1,24 +1,31 @@
 <?php
-header('Content-Type: application/json');
-require 'includes/db.php';
+//  SIN SALIDA ANTES DE header()
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
-    echo json_encode(['error' => 'Método no permitido']);
     exit;
 }
+
+require 'includes/db.php';
+
 $id = (int) $_POST['id'];
-$nombre = trim($_POST['nombre']);
+$nombre = trim($_POST['nombre'] ?? '');
+
 if (!$id || !$nombre) {
     http_response_code(400);
-    echo json_encode(['error' => 'Nombre inválido']);
     exit;
 }
+
 try {
     $stmt = $pdo->prepare("UPDATE repartidores SET nombre = ? WHERE id = ?");
     $stmt->execute([$nombre, $id]);
-    echo json_encode(['success' => true]);
+    
+    // ✅ Redirección limpia
+    header('Location: repartidores.php?mensaje=✅ Repartidor actualizado correctamente.');
+    exit;
+    
 } catch (Exception $e) {
+    error_log("Error al actualizar repartidor: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['error' => 'Error al actualizar']);
+    exit;
 }
 ?>
