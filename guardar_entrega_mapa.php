@@ -56,7 +56,7 @@ try {
     );
 
     // Redirigir con mensaje de éxito
-    header('Location: index.php?mensaje=✅ Entrega asignada correctamente.');
+    header('Location: entregas.php?mensaje=✅ Entrega asignada correctamente.');
     exit;
 
 } catch (Exception $e) {

@@ -74,7 +74,7 @@ require 'includes/db.php';
             </div>
             <div class="final-actions">
                 <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Asignar Entrega</button>
-                <a href="index.php" class="btn btn-outline">Cancelar</a>
+                <a href="entregas.php" class="btn btn-outline">Cancelar</a>
             </div>
         </form>
     </main>
