@@ -21,5 +21,8 @@
         <li><a href="repartidores.php" class="<?= basename($_SERVER['PHP_SELF']) === 'repartidores.php' ? 'active' : '' ?>">
             <i class="fas fa-users"></i> <span class="nav-text">Repartidores</span>
         </a></li>
+         <li><a href="logout.php" class="<?= basename($_SERVER['PHP_SELF']) === 'logout.php' ? 'active' : '' ?>">
+            <i class="fas fa-sign-out-alt"></i> <span class="nav-text">Cerrar Sesion</span>
+        </a></li>
     </ul>
 </aside>
